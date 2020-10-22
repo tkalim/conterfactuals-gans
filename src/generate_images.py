@@ -1,5 +1,5 @@
-import torch
 import matplotlib.pyplot as plt
+import torch
 import torchvision
 
 use_gpu = True if torch.cuda.is_available() else False
