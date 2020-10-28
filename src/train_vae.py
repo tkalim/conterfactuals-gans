@@ -5,15 +5,18 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
-from src.models.vanilla_vae import VanillaVAE
+from models.vanilla_vae import VanillaVAE
+from data.datasets import GeneratedImagesDatasetTrain
 
-SAVE_DIR = "../../models/"
+CHECKPOINTS_DIR = "../models/"
 MODEL_NAME = "vanilla_vae"
 LEARNING_RATE = 0.01
 SAVE_MODEL_EVERY_X_EPOCH = 10
 MODEL = VanillaVAE(in_channels=3, latent_dim=512)
+BATCH_SIZE = 20
 CRITERION = MODEL.encode_loss_function
 EPOCHS = 10
+TRAIN_DIR = Path("../data/generated/train")
 
 
 def save_model(model, epoch, loss, save_dir, model_name):
@@ -78,13 +81,13 @@ def train(
 
 if __name__ == "__main__":
     model = MODEL
-    dataset = None
-    dataloader = None
+    dataset = GeneratedImagesDatasetTrain(root_dir=TRAIN_DIR)
+    dataloader = data.DataLoader(dataset=dataset, batch_size=BATCH_SIZE, num_workers=4)
     train(
         model=MODEL,
         dataloader=dataloader,
-        eposchs=EPOCHS,
+        epochs=EPOCHS,
         criterion=CRITERION,
-        checkpoints_dir=SAVE_DIR,
+        checkpoints_dir=CHECKPOINTS_DIR,
     )
     print("training")
