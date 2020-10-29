@@ -14,6 +14,9 @@ class GeneratedImagesDatasetTrain(Dataset):
         self.img_names = [
             x.name for x in self.root_dir.glob("**/*.jpeg") if x.is_file()
         ]
+        self.transformation = transforms.Compose(
+            [transforms.Resize((64, 64)), transforms.ToTensor()]
+        )
 
     def __len__(self):
         return len(self.img_names)
@@ -25,8 +28,7 @@ class GeneratedImagesDatasetTrain(Dataset):
         image_path = self.root_dir / self.img_names[idx]
         gt_path = self.root_dir / (self.img_names[idx].split(".")[0] + ".npy")
         image = Image.open(str(image_path))
-        transformation = transforms.ToTensor()
-        image = transformation(image)
+        image = self.transformation(image)
         gt = np.load(gt_path)
         sample = {"image": image, "groundtruth": gt}
 

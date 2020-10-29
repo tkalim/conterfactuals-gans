@@ -41,6 +41,7 @@ class VanillaVAE(BaseVAE):
         modules = []
         if hidden_dims is None:
             hidden_dims = [32, 64, 128, 256, 512]
+            # hidden_dims = [256, 512, 2048, 4096, 8192]
 
         # Build Encoder
         for h_dim in hidden_dims:
@@ -200,19 +201,12 @@ class VanillaVAE(BaseVAE):
         return self.forward(x)[0]
 
     # custom loss func
-    def encode_loss_function(self, *args, **kwargs) -> dict:
+    def encode_loss_function(self, encoding, latent_input) -> dict:
         """
         Computes the VAE encoding loss function.
         :param args:
         :param kwargs:
         :return:
         """
-        encoding = args[0]
-        latent_input = args[1]
-        mu = args[2]
-        log_var = args[3]
-
         encode_loss = F.mse_loss(encoding, latent_input)
-
-        loss = encode_loss
-        return {"Encoding_Loss": encode_loss}
+        return encode_loss
