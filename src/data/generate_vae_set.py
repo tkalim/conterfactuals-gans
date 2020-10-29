@@ -9,11 +9,12 @@ import torchvision.utils as vutils
 from PIL import Image
 
 use_gpu = True if torch.cuda.is_available() else False
+OUT_SIZE = 128
 
 MODEL = torch.hub.load(
     "facebookresearch/pytorch_GAN_zoo:hub",
     "PGAN",
-    model_name="celebAHQ-512",
+    model_name="celeba",
     pretrained=True,
     useGPU=use_gpu,
 )
@@ -75,7 +76,7 @@ def generate_dataset(
             # image = Image.fromarray((image.cpu().numpy() * 255).astype(np.uint8))
             # image.save(str(image_path))
             np.save(str(latent_path), input_latent.numpy())
-            save_tensor(image, (512, 512), image_path)
+            save_tensor(image, (OUT_SIZE, OUT_SIZE), image_path)
             print(f"{image_path.name} created")
         print(f"Batch {i+1}/{num_images//batch_size} done!")
     return None
