@@ -1,9 +1,13 @@
+import os
 from pathlib import Path
+
 import numpy as np
-from torch.utils.data import DataLoader, Dataset
+import PIL
 import torch
 from PIL import Image
+from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
+from torchvision.datasets import CelebA
 
 
 class GeneratedImagesDatasetTrain(Dataset):
@@ -33,3 +37,42 @@ class GeneratedImagesDatasetTrain(Dataset):
         sample = {"image": image, "groundtruth": gt}
 
         return sample
+
+
+class CelebADataset(CelebA):
+    """
+    slightly modified CelebA dataset to return the filename with the image
+    """
+
+    def __getitem__(self, index):
+        X = PIL.Image.open(
+            os.path.join(
+                self.root, self.base_folder, "img_align_celeba", self.filename[index]
+            )
+        )
+
+        target: Any = []
+        for t in self.target_type:
+            if t == "attr":
+                target.append(self.attr[index, :])
+            elif t == "identity":
+                target.append(self.identity[index, 0])
+            elif t == "bbox":
+                target.append(self.bbox[index, :])
+            elif t == "landmarks":
+                target.append(self.landmarks_align[index, :])
+            else:
+                raise ValueError('Target type "{}" is not recognized.'.format(t))
+
+        if self.transform is not None:
+            X = self.transform(X)
+
+        if target:
+            target = tuple(target) if len(target) > 1 else target[0]
+
+            if self.target_transform is not None:
+                target = self.target_transform(target)
+        else:
+            target = None
+
+        return {"image": X, "filename": self.filename[index], "target": target}
