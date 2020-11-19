@@ -47,32 +47,6 @@ class CelebADataset(CelebA):
     as well as being able to select a subset of one attribute
     """
 
-    def __init__(
-        self,
-        root: str,
-        split: str = "train",
-        target_type: Union[List[str], str] = "attr",
-        transform: Optional[Callable] = None,
-        target_transform: Optional[Callable] = None,
-        download: bool = False,
-        lone_attr: Optional[str] = None,
-    ) -> None:
-        super(self.__class__, self).__init__(
-            root,
-            split,
-            target_type,
-            transform,
-            target_transform,
-            download,
-        )
-        self.lone_attr = lone_attr
-
-        if self.lone_attr is not None:
-            attributes_list = list(
-                pd.read_csv(Path(self.root) / "list_attr_celeba.txt").columns
-            )
-            self.lone_attr_idx = attributes_list.index(self.lone_attr)
-
     def __getitem__(self, index):
         X = PIL.Image.open(
             os.path.join(
@@ -104,10 +78,7 @@ class CelebADataset(CelebA):
         else:
             target = None
 
-        if self.lone_attr is None:
-            return {"image": X, "filename": self.filename[index], "target": target}
-        elif self.lone_attr is not None & self.attr[index, self.lone_attr_idx] == 1:
-            return {"image": X, "filename": self.filename[index], "target": target}
+        return {"image": X, "filename": self.filename[index], "target": target}
 
 
 class SmilingNotSmilingCelebADataset(CelebA):
