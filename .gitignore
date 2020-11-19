@@ -129,8 +129,3 @@ dmypy.json
 .pyre/
 
 .vscode/
-data/generated/train/*
-data/generated/test/*
-!data/generated/train/.gitkeep
-!data/generated/test/.gitkeep
-models/*.pt
