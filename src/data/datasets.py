@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from pathlib import Path
 
 import numpy as np
@@ -8,6 +9,7 @@ from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.datasets import CelebA
+from typing import Any, Callable, List, Optional, Union, Tuple
 
 
 class GeneratedImagesDatasetTrain(Dataset):
@@ -42,7 +44,34 @@ class GeneratedImagesDatasetTrain(Dataset):
 class CelebADataset(CelebA):
     """
     slightly modified CelebA dataset to return the filename with the image
+    as well as being able to select a subset of one attribute
     """
+
+    def __init__(
+        self,
+        root: str,
+        split: str = "train",
+        target_type: Union[List[str], str] = "attr",
+        transform: Optional[Callable] = None,
+        target_transform: Optional[Callable] = None,
+        download: bool = False,
+        lone_attr: Optional[str] = None,
+    ) -> None:
+        super(self.__class__, self).__init__(
+            root,
+            split,
+            target_type,
+            transform,
+            target_transform,
+            download,
+        )
+        self.lone_attr = lone_attr
+
+        if self.lone_attr is not None:
+            attributes_list = list(
+                pd.read_csv(Path(self.root) / "list_attr_celeba.txt").columns
+            )
+            self.lone_attr_idx = attributes_list.index(self.lone_attr)
 
     def __getitem__(self, index):
         X = PIL.Image.open(
@@ -75,4 +104,7 @@ class CelebADataset(CelebA):
         else:
             target = None
 
-        return {"image": X, "filename": self.filename[index], "target": target}
+        if self.lone_attr is None:
+            return {"image": X, "filename": self.filename[index], "target": target}
+        elif self.lone_attr is not None & self.attr[index, self.lone_attr_idx] == 1:
+            return {"image": X, "filename": self.filename[index], "target": target}
