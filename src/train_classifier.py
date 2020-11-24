@@ -1,18 +1,20 @@
-import torch
-from torch.utils.data import dataloader
-from torchvision import transforms as T
-from .data.datasets import SmilingNotSmilingCelebADataset
-from torch import nn
-import torch.utils.data as data
-import torch.optim as optim
-from pathlib import Path
-from torchvision import models
 import time
+from pathlib import Path
 
-CELEBA_DIR = "../data/celeba"
-NUM_CLASSES = 2
+import torch
+import torch.optim as optim
+import torch.utils.data as data
+from torch import nn
+from torch.utils.data import dataloader
+from torchvision import models
+from torchvision import transforms as T
+
+from data.datasets import SmilingNotSmilingCelebADataset
+
+CELEBA_DIR = "./data/"
+NUM_CLASSES = 1
 CELEBA_DIMS = (218, 178)
-MODEL_ACCEPTED_SIZE = (224, 224)
+MODEL_ACCEPTED_SIZE = 224
 BATCH_SIZE = 20
 CHECKPOINTS_DIR = "../models"
 EPOCHS = 100
@@ -51,7 +53,7 @@ def train(
         model.train()
         for ind_batch, sample_batched in enumerate(dataloader):
             images = sample_batched["image"]
-            groundtruths = sample_batched["target"]
+            groundtruths = sample_batched["label"]
             if cuda:
                 images = images.to(device="cuda")
                 groundtruths = groundtruths.to(device="cuda")
@@ -60,7 +62,7 @@ def train(
 
             output = model(images)
 
-            loss = criterion(output, groundtruths)
+            loss = criterion(output, groundtruths.float().unsqueeze(1))
 
             loss.require_grad = True
             loss.backward()
@@ -85,20 +87,23 @@ def train(
 
 if __name__ == "__main__":
     transform = T.Compose(
-        T.Pad(padding=(CELEBA_DIMS[0] - CELEBA_DIMS[1], 0)),
-        T.Resize(MODEL_ACCEPTED_SIZE),
+        [
+            T.Pad(padding=(CELEBA_DIMS[0] - CELEBA_DIMS[1], 0)),
+            T.Resize(size=MODEL_ACCEPTED_SIZE),
+            T.ToTensor(),
+        ]
     )
     dataset = SmilingNotSmilingCelebADataset(
         root=CELEBA_DIR,
         split="train",
         target_type="attr",
         transform=transform,
-        download=True,
+        download=False,
     )
     dataloader = data.DataLoader(dataset=dataset, batch_size=BATCH_SIZE, shuffle=True)
-    criterion = nn.BCELoss()
+    criterion = nn.BCEWithLogitsLoss()
     model = models.resnet101(pretrained=True)
-    model.fc = nn.Linear(512, NUM_CLASSES)
+    model.fc = nn.Linear(2048, NUM_CLASSES)
     train(
         model=model,
         dataloader=dataloader,

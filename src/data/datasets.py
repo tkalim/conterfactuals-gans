@@ -107,9 +107,13 @@ class SmilingNotSmilingCelebADataset(CelebA):
         self.positive_class = "Smiling"
 
         attributes_list = list(
-            pd.read_csv(Path(self.root) / "list_attr_celeba.txt").columns
+            pd.read_csv(
+                Path(self.root) / "celeba" / "list_attr_celeba.txt",
+                delim_whitespace=True,
+                skiprows=1,
+            ).columns
         )
-        self.positive_class_idx = attributes_list.index(self.lone_attr)
+        self.positive_class_idx = attributes_list.index(self.positive_class)
 
     def __getitem__(self, index):
         X = PIL.Image.open(
@@ -149,7 +153,8 @@ class SmilingNotSmilingCelebADataset(CelebA):
                 "label_name": "Smiling",
                 "label": 1,
             }
-        elif self.attr[index, self.lone_attr_idx] == -1:
+        # in the pytorch dataset -1 is mapped to 0
+        else:
             return {
                 "image": X,
                 "filename": self.filename[index],
