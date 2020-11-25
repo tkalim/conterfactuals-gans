@@ -16,7 +16,7 @@ MODEL = VanillaVAE(in_channels=3, latent_dim=512)
 BATCH_SIZE = 20
 CRITERION = MODEL.encode_loss_function
 EPOCHS = 10
-TRAIN_DIR = Path("../data/generated/train")
+TRAIN_DIR = Path("./data/generated/train")
 
 
 def save_model(model, epoch, loss, save_dir, model_name):
@@ -66,13 +66,13 @@ def train(
 
             optimizer.step()
 
-            if ind_batch % 100 == 0:
+            if ind_batch % 10 == 0:
                 print(
                     "[Epoch {}, Batch {}/{}]:  [Loss: {:03.2f}]".format(
                         epoch, ind_batch, len(dataloader), loss
                     )
                 )
-        if epoch % SAVE_MODEL_EVERY_X_EPOCH == 0:
+        if epoch % SAVE_MODEL_EVERY_X_EPOCH == 0 and epoch != 0:
             save_model(
                 model=model, epoch=epoch, loss=loss.item(), save_dir=checkpoints_dir
             )
