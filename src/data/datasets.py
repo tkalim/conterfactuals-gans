@@ -161,3 +161,43 @@ class SmilingNotSmilingCelebADataset(CelebA):
                 "label_name": "Not Smiling",
                 "label": 0,
             }
+
+
+class ConceptsDataset(Dataset):
+    """Attributes Concepts Dataset"""
+
+    def __init__(self, attributes_csv_file, root_dir, concept, n_samples):
+        """[summary]
+
+        Args:
+            attributes_csv_file ([type]): Location of the list_attributes csv
+            root_dir ([type]): Path to dir containing the latent factors
+        """
+        self.attribtes = pd.read_csv(
+            attributes_csv_file, delim_whitespace=True, skiprows=1
+        )
+        self.root_dir = root_dir
+        self.concept = concept
+        if n_samples <= len(self.attribtes):
+            self.n_samples = n_samples
+        else:
+            print(f"Can't sample more than {len(self.attributes)}")
+            raise ValueError
+        self.samples = self.attribtes.groupby(concept, as_index=False).apply(
+            lambda x: x.sample(n=self.n_samples)
+        )
+        self.samples = self.samples[concept]
+        self.samples["latent_factor"] = self.samples.index.str.replace(".jpg", ".npy")
+        self.samples.reset_index(drop=True, inplace=True)
+
+    def __len__(self):
+        return self.n_samples
+
+    def __getitem__(self, index: int):
+        latent_factor_path = (
+            Path(self.root_dir) / self.samples.iloc[index]["latent_factor"]
+        )
+        latent_factor = np.load(latent_factor_path)
+        label = self.samples.iloc[index][self.concept]
+
+        return {"latent_factor": latent_factor, "label": label}
