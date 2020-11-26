@@ -2,15 +2,15 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import torchvision
+from torch.utils import data
 
 from .data.datasets import CelebADataset
 from .models.vanilla_vae import VanillaVAE
 
 CELEBA_DIR = "./data/celeba"
+LATENT_FACTORS_DIR = "./data/generated/celeba-latent-factors"
 BATCH_SIZE = 20
-ACTIATIONS_DIR = "./data/activations"
-MODEL_STATE_DICT = "../models/AE.pt"
+MODEL_STATE_DICT = "./models/AE.pt"
 use_gpu = True if torch.cuda.is_available() else False
 
 
@@ -39,7 +39,7 @@ def predict(model, dataloader, model_weights=None):
             output = model(batch_images)
             for idx, latent_vector in enumerate(output):
                 filename = Path(batch_filenames[idx]).with_suffix(".npy")
-                filepath = Path(ACTIATIONS_DIR) / filename
+                filepath = Path(LATENT_FACTORS_DIR) / filename
                 np.save(filepath, latent_vector)
 
     return None
@@ -51,9 +51,8 @@ if __name__ == "__main__":
         split="all",
         target_type="attr",
         transform=None,
-        download=True,
-        lone_attr="Smiling",
+        download=False,
     )
     dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=BATCH_SIZE)
     model = VanillaVAE()
-    model.load_state_dict(torch.load(MODEL_STATE_DICT))
+    predict(model=model, dataloader=dataloader, model_weights=MODEL_STATE_DICT)
