@@ -276,7 +276,7 @@ def get_or_train_cav(
 
     cav_path = None
     if cav_dir is not None:
-        utils.make_dir_if_not_exists(cav_dir)
+        # utils.make_dir_if_not_exists(cav_dir)
         cav_path = os.path.join(
             cav_dir,
             CAV.cav_key(
